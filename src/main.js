@@ -1706,6 +1706,7 @@ const onDomReady = async () => {
             await syncStorageAdapter.set({
                 elementFilterConfig: { enabled, rules }
             });
+            console.log('[元素筛选] 配置已保存:', JSON.stringify({ enabled, rules }));
         } catch (error) {
             console.error('保存元素筛选配置失败:', error);
         }
@@ -1835,24 +1836,48 @@ const onDomReady = async () => {
         }
         
         return new Promise((resolve) => {
-            // 获取当前活动标签页
-            chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-                if (!tabs || tabs.length === 0) {
-                    resolve({ success: false, error: 'NO_TAB' });
-                    return;
+            // 优先获取当前活动的标签页
+            chrome.tabs.query({ active: true, currentWindow: true }, async (activeTabs) => {
+                let targetTab = null;
+                
+                // 检查当前活动标签页是否可用
+                if (activeTabs && activeTabs.length > 0) {
+                    const activeTab = activeTabs[0];
+                    if (activeTab.url && 
+                        !activeTab.url.startsWith('chrome://') && 
+                        !activeTab.url.startsWith('chrome-extension://') &&
+                        !activeTab.url.startsWith('edge://') &&
+                        !activeTab.url.startsWith('about:')) {
+                        targetTab = activeTab;
+                    }
                 }
                 
-                const tab = tabs[0];
+                // 如果当前活动标签页不可用，再查找其他标签页
+                if (!targetTab) {
+                    const allTabs = await new Promise((res) => {
+                        chrome.tabs.query({ currentWindow: true }, res);
+                    });
+                    
+                    for (const tab of allTabs) {
+                        if (tab.url && 
+                            !tab.url.startsWith('chrome://') && 
+                            !tab.url.startsWith('chrome-extension://') &&
+                            !tab.url.startsWith('edge://') &&
+                            !tab.url.startsWith('about:')) {
+                            targetTab = tab;
+                            break;
+                        }
+                    }
+                }
                 
-                // 检查是否是 Cerebr 自身页面
-                if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://'))) {
-                    resolve({ success: false, error: 'INVALID_TAB' });
+                if (!targetTab) {
+                    resolve({ success: false, error: 'NO_VALID_TAB' });
                     return;
                 }
                 
                 try {
                     // 向 content script 发送消息获取筛选文本
-                    chrome.tabs.sendMessage(tab.id, {
+                    chrome.tabs.sendMessage(targetTab.id, {
                         type: 'GET_FILTERED_PREVIEW',
                         config: config
                     }, (response) => {

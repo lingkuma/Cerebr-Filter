@@ -1531,10 +1531,10 @@ async function extractPageContent(skipWaitContent = false) {
       youtubeTranscript = await extractYouTubeTranscriptText();
     }
 
-    if (mainContent.length < 40 && !youtubeTranscript?.transcript) {
-      console.log('提取的内容太少，返回 null');
-      return null;
-    }
+    // if (mainContent.length < 40 && !youtubeTranscript?.transcript) {
+    //   console.log('提取的内容太少，返回 null');
+    //   return null;
+    // }
 
     const gptTokenCount = await estimateGPTTokens(mainContent);
     console.log('页面内容提取完成，内容长度:', mainContent.length, 'GPT tokens:', gptTokenCount);
