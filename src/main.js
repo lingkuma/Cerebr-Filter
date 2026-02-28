@@ -1830,7 +1830,7 @@ const onDomReady = async () => {
         }
         
         // 检查是否在扩展环境中
-        if (!isExtensionEnvironment()) {
+        if (!isExtensionEnvironment) {
             // Web 环境：无法获取其他标签页内容
             return { success: false, error: 'NOT_EXTENSION' };
         }
@@ -1902,18 +1902,25 @@ const onDomReady = async () => {
             
             try {
                 const response = await getFilteredPreview();
+                console.log('[元素筛选预览] 响应:', response);
                 
                 if (previewFilterResult && previewResultContent) {
                     previewFilterResult.style.display = 'block';
                     
-                    if (!response.success) {
+                    if (!response) {
+                        previewResultContent.textContent = t('element_filter_preview_error');
+                        previewResultContent.setAttribute('data-empty-text', previewResultContent.textContent);
+                    } else if (!response.success) {
                         // 处理错误情况
+                        console.log('[元素筛选预览] 错误:', response.error);
                         if (response.error === 'NO_RULES') {
                             previewResultContent.textContent = t('element_filter_preview_no_rules');
                         } else if (response.error === 'NOT_EXTENSION') {
                             previewResultContent.textContent = t('element_filter_preview_error');
-                        } else {
+                        } else if (response.error === 'NO_VALID_TAB') {
                             previewResultContent.textContent = t('element_filter_preview_error');
+                        } else {
+                            previewResultContent.textContent = `${t('element_filter_preview_error')} (${response.error || 'unknown'})`;
                         }
                         previewResultContent.setAttribute('data-empty-text', previewResultContent.textContent);
                     } else if (!response.content || response.content.trim() === '') {
@@ -1930,7 +1937,7 @@ const onDomReady = async () => {
                 console.error('预览筛选文本失败:', error);
                 if (previewFilterResult && previewResultContent) {
                     previewFilterResult.style.display = 'block';
-                    previewResultContent.textContent = t('element_filter_preview_error');
+                    previewResultContent.textContent = `${t('element_filter_preview_error')} (${error.message})`;
                 }
             } finally {
                 // 移除加载状态
