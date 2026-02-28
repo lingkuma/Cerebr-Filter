@@ -119,5 +119,27 @@
   "error_read_image_failed": { "message": "Failed to read image" },
   "error_parse_image_failed": { "message": "Failed to parse image" },
   "error_not_image_file": { "message": "Not an image file" },
-  "error_image_too_large": { "message": "Image is too large. Please compress or crop it before sending." }
+  "error_image_too_large": { "message": "Image is too large. Please compress or crop it before sending." },
+
+  "settings_element_filter": { "message": "Element filter" },
+  "title_element_filter": { "message": "Element filter" },
+  "element_filter_enabled": { "message": "Enable element filter" },
+  "element_filter_rules": { "message": "Filter rules" },
+  "element_filter_add_rule": { "message": "Add rule" },
+  "element_filter_rule_placeholder": { "message": "Enter selector value" },
+  "element_filter_delete_rule": { "message": "Delete rule" },
+  "element_filter_help_title": { "message": "Selector types" },
+  "element_filter_rules_empty": { "message": "No filter rules yet. Click the button below to add one." },
+
+  "selector_type_css": { "message": "CSS Selector" },
+  "selector_type_id": { "message": "Element ID" },
+  "selector_type_class": { "message": "Class Name" },
+  "selector_type_xpath": { "message": "XPath" },
+  "selector_type_js_path": { "message": "JS Path" },
+
+  "selector_help_css": { "message": "e.g.: #content, .article, div.main" },
+  "selector_help_id": { "message": "Element ID attribute value, e.g.: content" },
+  "selector_help_class": { "message": "Element class name, e.g.: article-content" },
+  "selector_help_xpath": { "message": "e.g.: //div[@id=\"content\"]" },
+  "selector_help_js_path": { "message": "JS path copied from DevTools" }
 }

@@ -130,6 +130,12 @@
                     <circle cx="5" cy="12" r="1.5" stroke="currentColor" stroke-width="1.5"/>
                 </svg>
             </div>
+            <div class="menu-item" id="element-filter-toggle" role="menuitem" tabindex="0">
+                <span data-i18n="settings_element_filter">元素筛选</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
         </div>
         <div id="message-input-shell" class="message-input-shell">
             <div id="message-input" contenteditable="true" placeholder="输入消息..." enterkeyhint="send" role="textbox" aria-label="消息输入框" aria-multiline="true" spellcheck="true" data-i18n-attr="placeholder:message_input_placeholder;aria-label:message_input_aria"></div>
@@ -260,6 +266,91 @@
             </div>
         </div>
     </div>
+    <div id="element-filter-settings">
+        <div class="settings-header">
+            <button class="back-button" aria-label="返回" data-i18n-attr="aria-label:aria_back">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M12 4L6 10L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <span class="settings-title" data-i18n="title_element_filter">元素筛选</span>
+        </div>
+        <div class="element-filter-content">
+            <div class="preferences-card">
+                <div class="preference-row">
+                    <label class="preference-label" data-i18n="element_filter_enabled">启用元素筛选</label>
+                    <label class="switch">
+                        <input type="checkbox" id="element-filter-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="preferences-card">
+                <div class="preference-row preference-row-header">
+                    <span class="preference-label" data-i18n="element_filter_rules">筛选规则</span>
+                </div>
+                <div id="element-filter-rules-container">
+                    <!-- 规则列表将动态生成 -->
+                </div>
+                <div class="preference-row">
+                    <button class="add-rule-btn" id="add-element-filter-rule" type="button">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                        <span data-i18n="element_filter_add_rule">添加规则</span>
+                    </button>
+                </div>
+            </div>
+            <div class="preferences-card element-filter-help">
+                <div class="preference-row preference-row-header">
+                    <span class="preference-label" data-i18n="element_filter_help_title">选择器类型说明</span>
+                </div>
+                <div class="help-content">
+                    <div class="help-item">
+                        <strong data-i18n="selector_type_css">CSS Selector</strong>
+                        <span data-i18n="selector_help_css">例如: #content, .article, div.main</span>
+                    </div>
+                    <div class="help-item">
+                        <strong data-i18n="selector_type_id">Element ID</strong>
+                        <span data-i18n="selector_help_id">元素的 ID 属性值，例如: content</span>
+                    </div>
+                    <div class="help-item">
+                        <strong data-i18n="selector_type_class">Class Name</strong>
+                        <span data-i18n="selector_help_class">元素的类名，例如: article-content</span>
+                    </div>
+                    <div class="help-item">
+                        <strong data-i18n="selector_type_xpath">XPath</strong>
+                        <span data-i18n="selector_help_xpath">例如: //div[@id="content"]</span>
+                    </div>
+                    <div class="help-item">
+                        <strong data-i18n="selector_type_js_path">JS Path</strong>
+                        <span data-i18n="selector_help_js_path">DevTools 复制的 JS 路径</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 元素筛选规则模板 -->
+    <template id="element-filter-rule-template">
+        <div class="filter-rule-item">
+            <div class="filter-rule-row">
+                <select class="filter-rule-type">
+                    <option value="css_selector" data-i18n="selector_type_css">CSS Selector</option>
+                    <option value="element_id" data-i18n="selector_type_id">Element ID</option>
+                    <option value="class_name" data-i18n="selector_type_class">Class Name</option>
+                    <option value="xpath" data-i18n="selector_type_xpath">XPath</option>
+                    <option value="js_path" data-i18n="selector_type_js_path">JS Path</option>
+                </select>
+                <input type="text" class="filter-rule-value" data-i18n-attr="placeholder:element_filter_rule_placeholder">
+                <button class="card-button delete-rule-btn" type="button" aria-label="删除规则" data-i18n-attr="aria-label:element_filter_delete_rule">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M5 4V12H11V4" stroke="currentColor" stroke-width="1.5"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </template>
     <div id="chat-list-page">
         <div class="settings-header">
             <button class="back-button" aria-label="返回" data-i18n-attr="aria-label:aria_back">

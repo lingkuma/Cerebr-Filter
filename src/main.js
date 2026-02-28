@@ -1645,6 +1645,170 @@ const onDomReady = async () => {
         });
     }
 
+    // 元素筛选设置页面
+    const elementFilterToggle = document.getElementById('element-filter-toggle');
+    const elementFilterSettings = document.getElementById('element-filter-settings');
+    const elementFilterBackButton = elementFilterSettings?.querySelector('.back-button');
+    const elementFilterSwitch = document.getElementById('element-filter-switch');
+    const elementFilterRulesContainer = document.getElementById('element-filter-rules-container');
+    const addElementFilterRuleBtn = document.getElementById('add-element-filter-rule');
+    const elementFilterRuleTemplate = document.getElementById('element-filter-rule-template');
+
+    // 加载元素筛选配置
+    const loadElementFilterConfig = async () => {
+        try {
+            const result = await syncStorageAdapter.get('elementFilterConfig');
+            const config = result?.elementFilterConfig || { enabled: false, rules: [] };
+            
+            if (elementFilterSwitch) {
+                elementFilterSwitch.checked = config.enabled || false;
+            }
+            
+            if (elementFilterRulesContainer) {
+                elementFilterRulesContainer.innerHTML = '';
+                if (config.rules && config.rules.length > 0) {
+                    config.rules.forEach(rule => {
+                        addFilterRuleUI(rule.type, rule.value, rule.id);
+                    });
+                }
+                // 设置空状态提示
+                elementFilterRulesContainer.setAttribute('data-empty-text', t('element_filter_rules_empty'));
+            }
+        } catch (error) {
+            console.error('加载元素筛选配置失败:', error);
+        }
+    };
+
+    // 保存元素筛选配置
+    const saveElementFilterConfig = async () => {
+        try {
+            const enabled = elementFilterSwitch?.checked || false;
+            const rules = [];
+            
+            if (elementFilterRulesContainer) {
+                const ruleItems = elementFilterRulesContainer.querySelectorAll('.filter-rule-item');
+                ruleItems.forEach(item => {
+                    const typeSelect = item.querySelector('.filter-rule-type');
+                    const valueInput = item.querySelector('.filter-rule-value');
+                    const ruleId = item.dataset.ruleId;
+                    
+                    if (typeSelect && valueInput && valueInput.value.trim()) {
+                        rules.push({
+                            id: ruleId || `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                            type: typeSelect.value,
+                            value: valueInput.value.trim(),
+                            createdAt: Date.now()
+                        });
+                    }
+                });
+            }
+            
+            await syncStorageAdapter.set({
+                elementFilterConfig: { enabled, rules }
+            });
+        } catch (error) {
+            console.error('保存元素筛选配置失败:', error);
+        }
+    };
+
+    // 添加筛选规则 UI
+    const addFilterRuleUI = (type = 'css_selector', value = '', ruleId = null) => {
+        if (!elementFilterRuleTemplate || !elementFilterRulesContainer) return;
+        
+        const template = elementFilterRuleTemplate.content;
+        const clone = template.cloneNode(true);
+        const ruleItem = clone.querySelector('.filter-rule-item');
+        
+        if (ruleId) {
+            ruleItem.dataset.ruleId = ruleId;
+        } else {
+            ruleItem.dataset.ruleId = `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        }
+        
+        const typeSelect = clone.querySelector('.filter-rule-type');
+        const valueInput = clone.querySelector('.filter-rule-value');
+        const deleteBtn = clone.querySelector('.delete-rule-btn');
+        
+        if (typeSelect) {
+            typeSelect.value = type;
+            // 应用国际化
+            typeSelect.querySelectorAll('option').forEach(option => {
+                const key = option.getAttribute('data-i18n');
+                if (key) {
+                    option.textContent = t(key);
+                }
+            });
+        }
+        
+        if (valueInput) {
+            valueInput.value = value;
+            // 应用国际化 placeholder
+            const placeholderKey = valueInput.getAttribute('data-i18n-attr');
+            if (placeholderKey) {
+                const parts = placeholderKey.split(':');
+                if (parts.length === 2 && parts[0] === 'placeholder') {
+                    valueInput.placeholder = t(parts[1]);
+                }
+            }
+        }
+        
+        // 删除按钮事件
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+                ruleItem.remove();
+                saveElementFilterConfig();
+            });
+        }
+        
+        // 输入变化时保存
+        if (typeSelect) {
+            typeSelect.addEventListener('change', saveElementFilterConfig);
+        }
+        if (valueInput) {
+            valueInput.addEventListener('input', debounce(saveElementFilterConfig, 500));
+        }
+        
+        elementFilterRulesContainer.appendChild(clone);
+    };
+
+    // 防抖函数
+    const debounce = (fn, delay) => {
+        let timer = null;
+        return (...args) => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
+    };
+
+    // 元素筛选设置页面事件
+    if (elementFilterToggle && elementFilterSettings) {
+        elementFilterToggle.addEventListener('click', () => {
+            elementFilterSettings.classList.add('visible');
+            closeSettingsMenu();
+            loadElementFilterConfig();
+        });
+    }
+
+    if (elementFilterBackButton && elementFilterSettings) {
+        elementFilterBackButton.addEventListener('click', () => {
+            elementFilterSettings.classList.remove('visible');
+        });
+    }
+
+    if (elementFilterSwitch) {
+        elementFilterSwitch.addEventListener('change', saveElementFilterConfig);
+    }
+
+    if (addElementFilterRuleBtn) {
+        addElementFilterRuleBtn.addEventListener('click', () => {
+            addFilterRuleUI();
+            saveElementFilterConfig();
+        });
+    }
+
+    // 初始化时加载元素筛选配置
+    loadElementFilterConfig();
+
     if (preferencesFeedback) {
         preferencesFeedback.addEventListener('click', () => {
             openExternal(FEEDBACK_URL);
@@ -2169,6 +2333,16 @@ const onDomReady = async () => {
 
         if (apiSettings?.classList?.contains('visible')) {
             apiSettings.classList.remove('visible');
+            handled = true;
+        }
+
+        if (elementFilterSettings?.classList?.contains('visible')) {
+            elementFilterSettings.classList.remove('visible');
+            handled = true;
+        }
+
+        if (preferencesSettings?.classList?.contains('visible')) {
+            preferencesSettings.classList.remove('visible');
             handled = true;
         }
 

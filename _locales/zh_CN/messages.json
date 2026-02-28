@@ -119,5 +119,27 @@
   "error_read_image_failed": { "message": "读取图片失败" },
   "error_parse_image_failed": { "message": "解析图片失败" },
   "error_not_image_file": { "message": "不是图片文件" },
-  "error_image_too_large": { "message": "图片过大，建议压缩或裁剪后再发送" }
+  "error_image_too_large": { "message": "图片过大，建议压缩或裁剪后再发送" },
+
+  "settings_element_filter": { "message": "元素筛选" },
+  "title_element_filter": { "message": "元素筛选" },
+  "element_filter_enabled": { "message": "启用元素筛选" },
+  "element_filter_rules": { "message": "筛选规则" },
+  "element_filter_add_rule": { "message": "添加规则" },
+  "element_filter_rule_placeholder": { "message": "输入选择器值" },
+  "element_filter_delete_rule": { "message": "删除规则" },
+  "element_filter_help_title": { "message": "选择器类型说明" },
+  "element_filter_rules_empty": { "message": "暂无筛选规则，点击下方按钮添加" },
+
+  "selector_type_css": { "message": "CSS Selector" },
+  "selector_type_id": { "message": "Element ID" },
+  "selector_type_class": { "message": "Class Name" },
+  "selector_type_xpath": { "message": "XPath" },
+  "selector_type_js_path": { "message": "JS Path" },
+
+  "selector_help_css": { "message": "例如: #content, .article, div.main" },
+  "selector_help_id": { "message": "元素的 ID 属性值，例如: content" },
+  "selector_help_class": { "message": "元素的类名，例如: article-content" },
+  "selector_help_xpath": { "message": "例如: //div[@id=\"content\"]" },
+  "selector_help_js_path": { "message": "DevTools 复制的 JS 路径" }
 }

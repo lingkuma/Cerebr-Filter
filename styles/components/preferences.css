@@ -131,3 +131,216 @@
     color: var(--cerebr-text-color);
     text-align: center;
 }
+
+/* 元素筛选设置页面样式 */
+#element-filter-settings {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    display: none;
+    overflow-y: auto;
+    flex-direction: column;
+    background: var(--cerebr-bg-color);
+}
+
+#element-filter-settings.visible {
+    display: flex;
+}
+
+.element-filter-content {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.preference-row-header {
+    background-color: var(--cerebr-message-ai-bg);
+    padding: 12px 20px;
+}
+
+.preference-row-header .preference-label {
+    font-weight: 600;
+    font-size: var(--cerebr-fs-13);
+    color: var(--cerebr-text-secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 添加规则按钮 */
+.add-rule-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px dashed var(--cerebr-card-border-color);
+    border-radius: 8px;
+    color: var(--cerebr-text-secondary-color);
+    font-size: var(--cerebr-fs-14);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-rule-btn:hover {
+    border-color: var(--cerebr-focus-border-color);
+    color: var(--cerebr-text-color);
+    background-color: var(--cerebr-hover-bg-color);
+}
+
+.add-rule-btn svg {
+    flex-shrink: 0;
+}
+
+/* 筛选规则项 */
+.filter-rule-item {
+    padding: 12px 20px;
+    border-top: 1px solid var(--cerebr-card-border-color);
+}
+
+.filter-rule-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+}
+
+.filter-rule-type {
+    min-width: 120px;
+    padding: 8px 12px;
+    background: var(--cerebr-bg-color);
+    border: 1px solid var(--cerebr-card-border-color);
+    border-radius: 6px;
+    color: var(--cerebr-text-color);
+    font-size: var(--cerebr-fs-13);
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.filter-rule-type:hover {
+    border-color: var(--cerebr-focus-border-color);
+}
+
+.filter-rule-type:focus {
+    outline: none;
+    border-color: var(--cerebr-focus-border-color);
+    box-shadow: 0 0 0 2px rgba(var(--cerebr-focus-border-color-rgb, 59, 130, 246), 0.2);
+}
+
+.filter-rule-value {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--cerebr-bg-color);
+    border: 1px solid var(--cerebr-card-border-color);
+    border-radius: 6px;
+    color: var(--cerebr-text-color);
+    font-size: var(--cerebr-fs-13);
+    font-family: inherit;
+}
+
+.filter-rule-value:hover {
+    border-color: var(--cerebr-focus-border-color);
+}
+
+.filter-rule-value:focus {
+    outline: none;
+    border-color: var(--cerebr-focus-border-color);
+    box-shadow: 0 0 0 2px rgba(var(--cerebr-focus-border-color-rgb, 59, 130, 246), 0.2);
+}
+
+.filter-rule-value::placeholder {
+    color: var(--cerebr-text-secondary-color);
+    opacity: 0.6;
+}
+
+.delete-rule-btn {
+    flex-shrink: 0;
+    padding: 6px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: var(--cerebr-text-secondary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-rule-btn:hover {
+    background-color: var(--cerebr-hover-bg-color);
+    color: var(--cerebr-text-color);
+}
+
+/* 帮助说明区域 */
+.element-filter-help {
+    overflow: visible;
+}
+
+.help-content {
+    padding: 0 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.help-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: var(--cerebr-fs-12);
+}
+
+.help-item strong {
+    color: var(--cerebr-text-color);
+    font-weight: 500;
+}
+
+.help-item span {
+    color: var(--cerebr-text-secondary-color);
+    opacity: 0.8;
+}
+
+/* 规则容器 */
+#element-filter-rules-container:empty::after {
+    content: attr(data-empty-text);
+    display: block;
+    padding: 20px;
+    text-align: center;
+    color: var(--cerebr-text-secondary-color);
+    font-size: var(--cerebr-fs-13);
+    opacity: 0.6;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+    .filter-rule-row {
+        flex-wrap: wrap;
+    }
+    
+    .filter-rule-type {
+        min-width: 100px;
+    }
+    
+    .filter-rule-value {
+        flex: 1 1 calc(100% - 44px);
+        order: 1;
+        margin-top: 8px;
+    }
+    
+    .filter-rule-type {
+        flex: 1;
+    }
+    
+    .delete-rule-btn {
+        order: 2;
+    }
+}

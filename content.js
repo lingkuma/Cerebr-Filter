@@ -1103,6 +1103,125 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 
+// 元素筛选配置相关常量和函数
+const ELEMENT_FILTER_CONFIG_KEY = 'elementFilterConfig';
+
+// 支持的选择器类型
+const SELECTOR_TYPES = {
+    CSS_SELECTOR: 'css_selector',
+    ELEMENT_ID: 'element_id',
+    CLASS_NAME: 'class_name',
+    XPATH: 'xpath',
+    JS_PATH: 'js_path'
+};
+
+/**
+ * 根据选择器类型和值获取目标元素
+ * @param {Document} doc - 文档对象
+ * @param {string} type - 选择器类型
+ * @param {string} value - 选择器值
+ * @returns {Element|null}
+ */
+function queryElementBySelector(doc, type, value) {
+    if (!value || typeof value !== 'string') return null;
+    
+    try {
+        switch (type) {
+            case SELECTOR_TYPES.CSS_SELECTOR:
+                return doc.querySelector(value);
+            
+            case SELECTOR_TYPES.ELEMENT_ID:
+                // ID选择器：移除可能的前缀 #
+                const id = value.replace(/^#/, '');
+                return doc.getElementById(id);
+            
+            case SELECTOR_TYPES.CLASS_NAME:
+                // 类名选择器：移除可能的前缀 .
+                const className = value.replace(/^\./, '');
+                return doc.querySelector(`.${CSS.escape(className)}`);
+            
+            case SELECTOR_TYPES.XPATH: {
+                // XPath 求值
+                const result = doc.evaluate(
+                    value,
+                    doc,
+                    null,
+                    XPathResult.FIRST_ORDERED_NODE_TYPE,
+                    null
+                );
+                return result.singleNodeValue;
+            }
+            
+            case SELECTOR_TYPES.JS_PATH:
+                // JS Path 是 Chrome DevTools 使用的路径格式
+                const match = value.match(/querySelector\(['"](.+?)['"]\)/);
+                if (match && match[1]) {
+                    return doc.querySelector(match[1]);
+                }
+                const idMatch = value.match(/getElementById\(['"](.+?)['"]\)/);
+                if (idMatch && idMatch[1]) {
+                    return doc.getElementById(idMatch[1]);
+                }
+                try {
+                    const el = eval(value);
+                    if (el instanceof Element) return el;
+                } catch {
+                    // 忽略执行错误
+                }
+                return null;
+            
+            default:
+                return null;
+        }
+    } catch (error) {
+        console.warn(`选择器执行失败 [${type}: ${value}]:`, error);
+        return null;
+    }
+}
+
+/**
+ * 根据筛选规则获取所有匹配的元素
+ * @param {Document} doc - 文档对象
+ * @param {Array} rules - 筛选规则列表
+ * @returns {Element[]}
+ */
+function getFilteredElements(doc, rules) {
+    const elements = [];
+    const seen = new Set();
+    
+    for (const rule of rules) {
+        const el = queryElementBySelector(doc, rule.type, rule.value);
+        if (el && el instanceof Element && !seen.has(el)) {
+            elements.push(el);
+            seen.add(el);
+        }
+    }
+    
+    return elements;
+}
+
+/**
+ * 获取元素筛选配置
+ * @returns {Promise<{enabled: boolean, rules: Array}>}
+ */
+async function getElementFilterConfig() {
+    try {
+        const result = await chrome.storage.sync.get(ELEMENT_FILTER_CONFIG_KEY);
+        const config = result?.[ELEMENT_FILTER_CONFIG_KEY];
+        if (!config) {
+            return { enabled: false, rules: [] };
+        }
+        return {
+            enabled: typeof config.enabled === 'boolean' ? config.enabled : false,
+            rules: Array.isArray(config.rules) ? config.rules : []
+        };
+    } catch (error) {
+        console.error('获取元素筛选配置失败:', error);
+        return { enabled: false, rules: [] };
+    }
+}
+
+
 // 修改 extractPageContent 函数
 const PAGE_TEXT_CACHE_TTL_MS = 15_000;
 let lastExtractedPage = null; // { url, title, content, createdAt }
@@ -1271,42 +1390,84 @@ async function extractPageContent(skipWaitContent = false) {
       mainContent = lastExtractedPage.content || '';
       usedCache = true;
     } else {
-      const iframes = document.querySelectorAll('iframe');
-      let frameContent = '';
-      for (const iframe of iframes) {
-        try {
-          if (iframe.contentDocument || iframe.contentWindow) {
-            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-            const content = iframeDocument.body.innerText;
-            frameContent += content;
+      // 检查元素筛选配置
+      const filterConfig = await getElementFilterConfig();
+      const shouldUseFilter = filterConfig.enabled && filterConfig.rules.length > 0;
+
+      if (shouldUseFilter) {
+        // 使用元素筛选模式：只提取匹配规则的元素内的文本
+        const filteredElements = getFilteredElements(document, filterConfig.rules);
+        if (filteredElements.length > 0) {
+          const contentParts = [];
+          for (const el of filteredElements) {
+            try {
+              // 克隆元素以进行清理
+              const clonedEl = el.cloneNode(true);
+              
+              // 移除不需要的元素
+              const selectorsToRemove = [
+                  'script', 'style', 'nav', 'header', 'footer',
+                  'iframe', 'noscript', 'img', 'svg', 'video',
+                  '[role="complementary"]', '[role="navigation"]',
+                  '.sidebar', '.nav', '.footer', '.header'
+              ];
+              selectorsToRemove.forEach(selector => {
+                  clonedEl.querySelectorAll(selector).forEach(element => element.remove());
+              });
+              
+              const text = clonedEl.innerText || '';
+              if (text.trim()) {
+                contentParts.push(text.trim());
+              }
+            } catch (e) {
+              console.warn('提取筛选元素内容失败:', e);
+            }
           }
-        } catch (e) {
-          // console.log('无法访问该iframe内容:', e.message);
+          mainContent = contentParts.join('\n\n');
+        } else {
+          console.log('元素筛选已启用，但未找到匹配的元素');
+          mainContent = '';
         }
+      } else {
+        // 默认模式：提取整个页面的文本
+        const iframes = document.querySelectorAll('iframe');
+        let frameContent = '';
+        for (const iframe of iframes) {
+          try {
+            if (iframe.contentDocument || iframe.contentWindow) {
+              const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+              const content = iframeDocument.body.innerText;
+              frameContent += content;
+            }
+          } catch (e) {
+            // console.log('无法访问该iframe内容:', e.message);
+          }
+        }
+
+        const tempContainer = document.body.cloneNode(true);
+
+        // 将表单元素的实时 value 同步到克隆的节点中，以便 innerText 可以获取到
+        const originalFormElements = document.body.querySelectorAll('textarea, input');
+        const clonedFormElements = tempContainer.querySelectorAll('textarea, input');
+        originalFormElements.forEach((el, index) => {
+          if (clonedFormElements[index] && el.value) {
+            clonedFormElements[index].textContent = el.value;
+          }
+        });
+
+        const selectorsToRemove = [
+            'script', 'style', 'nav', 'header', 'footer',
+            'iframe', 'noscript', 'img', 'svg', 'video',
+            '[role="complementary"]', '[role="navigation"]',
+            '.sidebar', '.nav', '.footer', '.header'
+        ];
+        selectorsToRemove.forEach(selector => {
+            tempContainer.querySelectorAll(selector).forEach(element => element.remove());
+        });
+
+        mainContent = tempContainer.innerText + frameContent;
       }
-
-      const tempContainer = document.body.cloneNode(true);
-
-      // 将表单元素的实时 value 同步到克隆的节点中，以便 innerText 可以获取到
-      const originalFormElements = document.body.querySelectorAll('textarea, input');
-      const clonedFormElements = tempContainer.querySelectorAll('textarea, input');
-      originalFormElements.forEach((el, index) => {
-        if (clonedFormElements[index] && el.value) {
-          clonedFormElements[index].textContent = el.value;
-        }
-      });
-
-      const selectorsToRemove = [
-          'script', 'style', 'nav', 'header', 'footer',
-          'iframe', 'noscript', 'img', 'svg', 'video',
-          '[role="complementary"]', '[role="navigation"]',
-          '.sidebar', '.nav', '.footer', '.header'
-      ];
-      selectorsToRemove.forEach(selector => {
-          tempContainer.querySelectorAll(selector).forEach(element => element.remove());
-      });
-
-      mainContent = tempContainer.innerText + frameContent;
+      
       mainContent = mainContent.replace(/\s+/g, ' ').replace(/\n\s*\n/g, '\n').trim();
     }
 
