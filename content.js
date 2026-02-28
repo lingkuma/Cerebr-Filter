@@ -1027,26 +1027,47 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	                }
 	                
 	                const contentParts = [];
-	                for (const el of filteredElements) {
-	                    try {
-	                        const clonedEl = el.cloneNode(true);
-	                        const selectorsToRemove = [
-	                            'script', 'style', 'nav', 'header', 'footer',
-	                            'iframe', 'noscript', 'img', 'svg', 'video',
-	                            '[role="complementary"]', '[role="navigation"]',
-	                            '.sidebar', '.nav', '.footer', '.header'
-	                        ];
-	                        selectorsToRemove.forEach(selector => {
-	                            clonedEl.querySelectorAll(selector).forEach(element => element.remove());
-	                        });
-	                        const text = clonedEl.innerText || '';
-	                        if (text.trim()) {
-	                            contentParts.push(text.trim());
-	                        }
-	                    } catch (e) {
-	                        console.warn('提取筛选元素内容失败:', e);
-	                    }
-	                }
+                for (const el of filteredElements) {
+                    try {
+                        console.log('[预览] 处理元素:', el.tagName, el.className, 
+                            '原始innerText长度:', el.innerText?.length || 0, 
+                            'textContent长度:', el.textContent?.length || 0,
+                            'innerHTML长度:', el.innerHTML?.length || 0,
+                            '子元素数量:', el.children?.length || 0,
+                            '是否在shadow DOM:', el.getRootNode() instanceof ShadowRoot);
+                        
+                        // 检查是否有 shadow DOM
+                        if (el.shadowRoot) {
+                            console.log('[预览] 元素有 shadowRoot:', el.shadowRoot.innerHTML?.substring(0, 200));
+                        }
+                        
+                        const clonedEl = el.cloneNode(true);
+                        const selectorsToRemove = [
+                            'script', 'style', 'nav', 'header', 'footer',
+                            'iframe', 'noscript', 'img', 'svg', 'video',
+                            '[role="complementary"]', '[role="navigation"]',
+                            '.sidebar', '.nav', '.footer', '.header'
+                        ];
+                        selectorsToRemove.forEach(selector => {
+                            clonedEl.querySelectorAll(selector).forEach(element => element.remove());
+                        });
+                        // 优先使用 innerText（可见文本），如果为空则使用 textContent
+                        let text = clonedEl.innerText || '';
+                        if (!text.trim()) {
+                            text = clonedEl.textContent || '';
+                        }
+                        // 如果还是空，尝试 innerHTML
+                        if (!text.trim()) {
+                            text = clonedEl.innerHTML || '';
+                        }
+                        console.log('[预览] 清理后文本长度:', text.length, '内容预览:', text.substring(0, 100));
+                        if (text.trim()) {
+                            contentParts.push(text.trim());
+                        }
+                    } catch (e) {
+                        console.warn('提取筛选元素内容失败:', e);
+                    }
+                }
 	                
 	                const content = contentParts.join('\n\n');
 	                sendResponse({ 
@@ -1170,7 +1191,7 @@ const SELECTOR_TYPES = {
 };
 
 /**
- * 根据选择器类型和值获取目标元素
+ * 根据选择器类型和值获取目标元素（单个）
  * @param {Document} doc - 文档对象
  * @param {string} type - 选择器类型
  * @param {string} value - 选择器值
@@ -1234,6 +1255,65 @@ function queryElementBySelector(doc, type, value) {
 }
 
 /**
+ * 根据选择器类型和值获取所有匹配的元素
+ * @param {Document} doc - 文档对象
+ * @param {string} type - 选择器类型
+ * @param {string} value - 选择器值
+ * @returns {Element[]}
+ */
+function queryAllElementsBySelector(doc, type, value) {
+    if (!value || typeof value !== 'string') return [];
+    
+    try {
+        switch (type) {
+            case SELECTOR_TYPES.CSS_SELECTOR:
+                return Array.from(doc.querySelectorAll(value));
+            
+            case SELECTOR_TYPES.ELEMENT_ID:
+                // ID选择器：只返回一个元素
+                const id = value.replace(/^#/, '');
+                const elById = doc.getElementById(id);
+                return elById ? [elById] : [];
+            
+            case SELECTOR_TYPES.CLASS_NAME:
+                // 类名选择器：返回所有匹配的元素
+                const className = value.replace(/^\./, '');
+                return Array.from(doc.querySelectorAll(`.${CSS.escape(className)}`));
+            
+            case SELECTOR_TYPES.XPATH: {
+                // XPath 求值：获取所有匹配的节点
+                const result = doc.evaluate(
+                    value,
+                    doc,
+                    null,
+                    XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+                    null
+                );
+                const elements = [];
+                for (let i = 0; i < result.snapshotLength; i++) {
+                    const node = result.snapshotItem(i);
+                    if (node instanceof Element) {
+                        elements.push(node);
+                    }
+                }
+                return elements;
+            }
+            
+            case SELECTOR_TYPES.JS_PATH:
+                // JS Path：只返回单个元素
+                const el = queryElementBySelector(doc, type, value);
+                return el ? [el] : [];
+            
+            default:
+                return [];
+        }
+    } catch (error) {
+        console.warn(`选择器执行失败 [${type}: ${value}]:`, error);
+        return [];
+    }
+}
+
+/**
  * 根据筛选规则获取所有匹配的元素
  * @param {Document} doc - 文档对象
  * @param {Array} rules - 筛选规则列表
@@ -1243,14 +1323,22 @@ function getFilteredElements(doc, rules) {
     const elements = [];
     const seen = new Set();
     
+    console.log('[元素筛选] 开始匹配，规则数量:', rules.length);
     for (const rule of rules) {
-        const el = queryElementBySelector(doc, rule.type, rule.value);
-        if (el && el instanceof Element && !seen.has(el)) {
-            elements.push(el);
-            seen.add(el);
+        console.log('[元素筛选] 处理规则:', JSON.stringify(rule));
+        // 使用 queryAllElementsBySelector 获取所有匹配的元素
+        const matchedElements = queryAllElementsBySelector(doc, rule.type, rule.value);
+        console.log('[元素筛选] 规则匹配结果:', matchedElements.length, '个元素', '类型:', rule.type, '值:', rule.value);
+        
+        for (const el of matchedElements) {
+            if (el && el instanceof Element && !seen.has(el)) {
+                elements.push(el);
+                seen.add(el);
+            }
         }
     }
     
+    console.log('[元素筛选] 最终匹配元素数量:', elements.length);
     return elements;
 }
 
@@ -1469,7 +1557,11 @@ async function extractPageContent(skipWaitContent = false) {
                   clonedEl.querySelectorAll(selector).forEach(element => element.remove());
               });
               
-              const text = clonedEl.innerText || '';
+              // 优先使用 innerText（可见文本），如果为空则使用 textContent
+              let text = clonedEl.innerText || '';
+              if (!text.trim()) {
+                text = clonedEl.textContent || '';
+              }
               if (text.trim()) {
                 contentParts.push(text.trim());
               }
