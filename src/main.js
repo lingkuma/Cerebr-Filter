@@ -1809,6 +1809,126 @@ const onDomReady = async () => {
     // 初始化时加载元素筛选配置
     loadElementFilterConfig();
 
+    // 元素筛选预览功能
+    const previewFilterBtn = document.getElementById('preview-filter-btn');
+    const previewFilterResult = document.getElementById('preview-filter-result');
+    const previewResultContent = document.getElementById('preview-result-content');
+    const copyPreviewBtn = document.getElementById('copy-preview-btn');
+
+    // 获取当前标签页的筛选文本预览
+    const getFilteredPreview = async () => {
+        // 先保存当前配置
+        await saveElementFilterConfig();
+        
+        // 获取当前配置
+        const result = await syncStorageAdapter.get('elementFilterConfig');
+        const config = result?.elementFilterConfig || { enabled: false, rules: [] };
+        
+        if (!config.enabled || !config.rules || config.rules.length === 0) {
+            return { success: false, error: 'NO_RULES' };
+        }
+        
+        // 检查是否在扩展环境中
+        if (!isExtensionEnvironment()) {
+            // Web 环境：无法获取其他标签页内容
+            return { success: false, error: 'NOT_EXTENSION' };
+        }
+        
+        return new Promise((resolve) => {
+            // 获取当前活动标签页
+            chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+                if (!tabs || tabs.length === 0) {
+                    resolve({ success: false, error: 'NO_TAB' });
+                    return;
+                }
+                
+                const tab = tabs[0];
+                
+                // 检查是否是 Cerebr 自身页面
+                if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://'))) {
+                    resolve({ success: false, error: 'INVALID_TAB' });
+                    return;
+                }
+                
+                try {
+                    // 向 content script 发送消息获取筛选文本
+                    chrome.tabs.sendMessage(tab.id, {
+                        type: 'GET_FILTERED_PREVIEW',
+                        config: config
+                    }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            resolve({ success: false, error: chrome.runtime.lastError.message });
+                        } else {
+                            resolve(response || { success: false, error: 'NO_RESPONSE' });
+                        }
+                    });
+                } catch (error) {
+                    resolve({ success: false, error: error.message });
+                }
+            });
+        });
+    };
+
+    // 预览按钮点击事件
+    if (previewFilterBtn) {
+        previewFilterBtn.addEventListener('click', async () => {
+            // 添加加载状态
+            previewFilterBtn.classList.add('loading');
+            
+            try {
+                const response = await getFilteredPreview();
+                
+                if (previewFilterResult && previewResultContent) {
+                    previewFilterResult.style.display = 'block';
+                    
+                    if (!response.success) {
+                        // 处理错误情况
+                        if (response.error === 'NO_RULES') {
+                            previewResultContent.textContent = t('element_filter_preview_no_rules');
+                        } else if (response.error === 'NOT_EXTENSION') {
+                            previewResultContent.textContent = t('element_filter_preview_error');
+                        } else {
+                            previewResultContent.textContent = t('element_filter_preview_error');
+                        }
+                        previewResultContent.setAttribute('data-empty-text', previewResultContent.textContent);
+                    } else if (!response.content || response.content.trim() === '') {
+                        // 无匹配内容
+                        previewResultContent.textContent = t('element_filter_preview_empty');
+                        previewResultContent.setAttribute('data-empty-text', t('element_filter_preview_empty'));
+                    } else {
+                        // 显示匹配的内容
+                        previewResultContent.textContent = response.content;
+                        previewResultContent.removeAttribute('data-empty-text');
+                    }
+                }
+            } catch (error) {
+                console.error('预览筛选文本失败:', error);
+                if (previewFilterResult && previewResultContent) {
+                    previewFilterResult.style.display = 'block';
+                    previewResultContent.textContent = t('element_filter_preview_error');
+                }
+            } finally {
+                // 移除加载状态
+                previewFilterBtn.classList.remove('loading');
+            }
+        });
+    }
+
+    // 复制预览文本
+    if (copyPreviewBtn && previewResultContent) {
+        copyPreviewBtn.addEventListener('click', async () => {
+            const text = previewResultContent.textContent;
+            if (text && text.trim()) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    showToast(t('copy_success') || '已复制');
+                } catch (error) {
+                    console.error('复制失败:', error);
+                }
+            }
+        });
+    }
+
     if (preferencesFeedback) {
         preferencesFeedback.addEventListener('click', () => {
             openExternal(FEEDBACK_URL);

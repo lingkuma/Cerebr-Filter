@@ -320,6 +320,129 @@
     opacity: 0.6;
 }
 
+/* 预览功能样式 */
+.element-filter-preview {
+    margin-top: 8px;
+}
+
+.preview-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: var(--cerebr-message-ai-bg);
+    border: 1px solid var(--cerebr-card-border-color);
+    border-radius: 8px;
+    color: var(--cerebr-text-color);
+    font-size: var(--cerebr-fs-14);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+}
+
+.preview-btn:hover {
+    background: var(--cerebr-hover-bg-color);
+    border-color: var(--cerebr-focus-border-color);
+}
+
+.preview-btn:active {
+    transform: scale(0.98);
+}
+
+.preview-btn svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.preview-result {
+    margin-top: 12px;
+    border: 1px solid var(--cerebr-card-border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--cerebr-bg-color);
+}
+
+.preview-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: var(--cerebr-message-ai-bg);
+    border-bottom: 1px solid var(--cerebr-card-border-color);
+    font-size: var(--cerebr-fs-12);
+    font-weight: 500;
+    color: var(--cerebr-text-secondary-color);
+}
+
+.copy-preview-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--cerebr-text-secondary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.copy-preview-btn:hover {
+    background: var(--cerebr-hover-bg-color);
+    color: var(--cerebr-text-color);
+}
+
+.preview-result-content {
+    padding: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: var(--cerebr-fs-12);
+    line-height: 1.6;
+    color: var(--cerebr-text-color);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.preview-result-content:empty::before {
+    content: attr(data-empty-text);
+    color: var(--cerebr-text-secondary-color);
+    opacity: 0.6;
+}
+
+.preview-result-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.preview-result-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.preview-result-content::-webkit-scrollbar-thumb {
+    background: var(--cerebr-card-border-color);
+    border-radius: 3px;
+}
+
+.preview-result-content::-webkit-scrollbar-thumb:hover {
+    background: var(--cerebr-text-secondary-color);
+}
+
+/* 预览加载状态 */
+.preview-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.preview-btn.loading svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* 响应式调整 */
 @media (max-width: 480px) {
     .filter-rule-row {

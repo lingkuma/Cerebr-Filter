@@ -141,5 +141,12 @@
   "selector_help_id": { "message": "元素的 ID 屬性值，例如: content" },
   "selector_help_class": { "message": "元素的類別名稱，例如: article-content" },
   "selector_help_xpath": { "message": "例如: //div[@id=\"content\"]" },
-  "selector_help_js_path": { "message": "DevTools 複製的 JS 路徑" }
+  "selector_help_js_path": { "message": "DevTools 複製的 JS 路徑" },
+
+  "element_filter_preview_btn": { "message": "預覽篩選後的文字" },
+  "element_filter_preview_result": { "message": "篩選結果預覽" },
+  "element_filter_copy_preview": { "message": "複製預覽文字" },
+  "element_filter_preview_empty": { "message": "未匹配到任何內容，請檢查篩選規則" },
+  "element_filter_preview_error": { "message": "預覽失敗：無法取得目前頁面內容" },
+  "element_filter_preview_no_rules": { "message": "請先新增篩選規則" }
 }

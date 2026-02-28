@@ -141,5 +141,12 @@
   "selector_help_id": { "message": "元素的 ID 属性值，例如: content" },
   "selector_help_class": { "message": "元素的类名，例如: article-content" },
   "selector_help_xpath": { "message": "例如: //div[@id=\"content\"]" },
-  "selector_help_js_path": { "message": "DevTools 复制的 JS 路径" }
+  "selector_help_js_path": { "message": "DevTools 复制的 JS 路径" },
+
+  "element_filter_preview_btn": { "message": "预览筛选后的文本" },
+  "element_filter_preview_result": { "message": "筛选结果预览" },
+  "element_filter_copy_preview": { "message": "复制预览文本" },
+  "element_filter_preview_empty": { "message": "未匹配到任何内容，请检查筛选规则" },
+  "element_filter_preview_error": { "message": "预览失败：无法获取当前页面内容" },
+  "element_filter_preview_no_rules": { "message": "请先添加筛选规则" }
 }

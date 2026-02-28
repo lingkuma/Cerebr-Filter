@@ -141,5 +141,12 @@
   "selector_help_id": { "message": "Element ID attribute value, e.g.: content" },
   "selector_help_class": { "message": "Element class name, e.g.: article-content" },
   "selector_help_xpath": { "message": "e.g.: //div[@id=\"content\"]" },
-  "selector_help_js_path": { "message": "JS path copied from DevTools" }
+  "selector_help_js_path": { "message": "JS path copied from DevTools" },
+
+  "element_filter_preview_btn": { "message": "Preview filtered text" },
+  "element_filter_preview_result": { "message": "Filter result preview" },
+  "element_filter_copy_preview": { "message": "Copy preview text" },
+  "element_filter_preview_empty": { "message": "No content matched. Please check your filter rules." },
+  "element_filter_preview_error": { "message": "Preview failed: Unable to get current page content" },
+  "element_filter_preview_no_rules": { "message": "Please add filter rules first" }
 }

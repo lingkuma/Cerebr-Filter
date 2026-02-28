@@ -1008,6 +1008,60 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 	        return true;
 	    }
 
+	    // 处理获取筛选文本预览请求
+	    if (message.type === 'GET_FILTERED_PREVIEW') {
+	        (async () => {
+	            try {
+	                const filterConfig = message.config || await getElementFilterConfig();
+	                
+	                if (!filterConfig.enabled || !filterConfig.rules || filterConfig.rules.length === 0) {
+	                    sendResponse({ success: false, error: 'NO_RULES', content: '' });
+	                    return;
+	                }
+	                
+	                const filteredElements = getFilteredElements(document, filterConfig.rules);
+	                
+	                if (filteredElements.length === 0) {
+	                    sendResponse({ success: true, content: '', matchedCount: 0 });
+	                    return;
+	                }
+	                
+	                const contentParts = [];
+	                for (const el of filteredElements) {
+	                    try {
+	                        const clonedEl = el.cloneNode(true);
+	                        const selectorsToRemove = [
+	                            'script', 'style', 'nav', 'header', 'footer',
+	                            'iframe', 'noscript', 'img', 'svg', 'video',
+	                            '[role="complementary"]', '[role="navigation"]',
+	                            '.sidebar', '.nav', '.footer', '.header'
+	                        ];
+	                        selectorsToRemove.forEach(selector => {
+	                            clonedEl.querySelectorAll(selector).forEach(element => element.remove());
+	                        });
+	                        const text = clonedEl.innerText || '';
+	                        if (text.trim()) {
+	                            contentParts.push(text.trim());
+	                        }
+	                    } catch (e) {
+	                        console.warn('提取筛选元素内容失败:', e);
+	                    }
+	                }
+	                
+	                const content = contentParts.join('\n\n');
+	                sendResponse({ 
+	                    success: true, 
+	                    content: content,
+	                    matchedCount: filteredElements.length
+	                });
+	            } catch (error) {
+	                console.error('获取筛选预览失败:', error);
+	                sendResponse({ success: false, error: error.message, content: '' });
+	            }
+	        })();
+	        return true;
+	    }
+
 	    // 处理 NEW_CHAT 消息
 	    if (message.type === 'NEW_CHAT') {
 	        if (!sidebar?.isVisible) {
