@@ -88,13 +88,6 @@
             </svg>
         </button>
         <div id="settings-menu" role="menu" aria-label="设置菜单" data-i18n-attr="aria-label:settings_menu_label">
-            <div class="menu-item" id="theme-toggle" role="menuitem" tabindex="0">
-                <span data-i18n="settings_dark_mode">深色模式</span>
-                <label class="switch">
-                    <input type="checkbox" id="theme-switch">
-                    <span class="slider"></span>
-                </label>
-            </div>
             <div class="menu-item" id="webpage-qa" role="menuitem" tabindex="0">
                 <span data-i18n="settings_webpage_content">网页内容</span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -122,12 +115,8 @@
             <div class="menu-item" id="preferences-toggle" role="menuitem" tabindex="0">
                 <span data-i18n="settings_preferences">偏好设置</span>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M2 4H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M2 8H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="M2 12H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                    <circle cx="6" cy="4" r="1.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="10" cy="8" r="1.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="5" cy="12" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6.5 1.75H9.5L9.82 3.17C10.06 3.25 10.28 3.34 10.5 3.46L11.84 2.78L13.22 4.16L12.54 5.5C12.66 5.72 12.75 5.94 12.83 6.18L14.25 6.5V9.5L12.83 9.82C12.75 10.06 12.66 10.28 12.54 10.5L13.22 11.84L11.84 13.22L10.5 12.54C10.28 12.66 10.06 12.75 9.82 12.83L9.5 14.25H6.5L6.18 12.83C5.94 12.75 5.72 12.66 5.5 12.54L4.16 13.22L2.78 11.84L3.46 10.5C3.34 10.28 3.25 10.06 3.17 9.82L1.75 9.5V6.5L3.17 6.18C3.25 5.94 3.34 5.72 3.46 5.5L2.78 4.16L4.16 2.78L5.5 3.46C5.72 3.34 5.94 3.25 6.18 3.17L6.5 1.75Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+                    <circle cx="8" cy="8" r="2.1" stroke="currentColor" stroke-width="1.2"/>
                 </svg>
             </div>
             <div class="menu-item" id="element-filter-toggle" role="menuitem" tabindex="0">
@@ -194,6 +183,17 @@
                                     <label for="system-prompt" data-i18n="api_system_prompt_label">系统提示</label>
                                     <textarea id="system-prompt" class="system-prompt" rows="3"></textarea>
                                 </div>
+                                <div class="setting-item reasoning-effort-setting" hidden>
+                                    <label data-i18n="api_reasoning_effort_label">思考等级</label>
+                                    <select class="reasoning-effort">
+                                        <option value="off">off</option>
+                                        <option value="minimal">minimal</option>
+                                        <option value="low">low</option>
+                                        <option value="medium">medium</option>
+                                        <option value="high">high</option>
+                                        <option value="xhigh">xhigh</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -219,6 +219,14 @@
                         <option value="en" data-i18n="language_en">English</option>
                         <option value="zh_CN" data-i18n="language_zh_cn">简体中文</option>
                         <option value="zh_TW" data-i18n="language_zh_tw">繁體中文</option>
+                    </select>
+                </div>
+                <div class="preference-row">
+                    <label class="preference-label" for="preferences-theme" data-i18n="preferences_theme_label">主题</label>
+                    <select class="preference-select" id="preferences-theme" aria-label="主题设置" data-i18n-attr="aria-label:preferences_theme_aria">
+                        <option value="system" data-i18n="theme_system">跟随系统</option>
+                        <option value="light" data-i18n="theme_light">浅色</option>
+                        <option value="dark" data-i18n="theme_dark">深色</option>
                     </select>
                 </div>
                 <div class="preference-row">
@@ -397,6 +405,12 @@
                 <div class="card-content">
                     <div class="chat-title" data-i18n="chat_new_title">新对话</div>
                     <div class="card-actions">
+                        <button class="card-button edit-title-btn" aria-label="修改该对话标题" data-i18n-attr="aria-label:chat_edit_title_aria">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M3 11.5L11.5 3L13 4.5L4.5 13H3V11.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                                <path d="M10.5 4L12 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </button>
                         <button class="card-button delete-btn" aria-label="删除该对话" data-i18n-attr="aria-label:chat_delete_chat_aria">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M3 4H13" stroke="currentColor" stroke-width="1.5"/>
